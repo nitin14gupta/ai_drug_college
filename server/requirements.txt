@@ -9,3 +9,8 @@ bcrypt
 email-validator
 python-multipart
 requests
+langchain
+langchain-openai
+langchain-community
+pandas
+boto3

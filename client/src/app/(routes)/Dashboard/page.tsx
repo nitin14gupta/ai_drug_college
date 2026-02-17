@@ -12,14 +12,27 @@ import {
     Search,
     Activity,
     ShieldCheck,
-    Zap
+    Zap,
+    Stethoscope,
+    AlertCircle
 } from 'lucide-react';
+import { DrugChecker } from '@/src/component/DDI/DrugChecker';
+import { useDDI } from '@/src/hooks/useDDI';
 
 /**
  * COMPONENT: Dashboard Page
  */
 export default function DashboardPage() {
     const { user, logout } = useAuth();
+    const [mode, setMode] = React.useState<'patient' | 'clinician'>('patient');
+    const { getStats } = useDDI();
+    const [stats, setStats] = React.useState({ drug_count: 0, interaction_count: 0, system_status: 'loading' });
+
+    React.useEffect(() => {
+        getStats().then(res => {
+            if (res) setStats(res);
+        });
+    }, [getStats]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex">
@@ -34,17 +47,18 @@ export default function DashboardPage() {
 
                 <nav className="flex-1 p-6 space-y-2">
                     {[
-                        { icon: <LayoutDashboard size={20} />, label: "Overview", active: true },
-                        { icon: <Activity size={20} />, label: "Prescriptions" },
-                        { icon: <ShieldCheck size={20} />, label: "Safety Alerts" },
-                        { icon: <User size={20} />, label: "Profile" },
-                        { icon: <Settings size={20} />, label: "Settings" },
+                        { icon: <LayoutDashboard size={20} />, label: "Overview", active: true, path: "/Dashboard" },
+                        { icon: <Activity size={20} />, label: "Prescriptions", path: "/Dashboard" },
+                        { icon: <ShieldCheck size={20} />, label: "Safety Alerts", path: "/Dashboard" },
+                        { icon: <User size={20} />, label: "Profile", path: "/Dashboard" },
+                        { icon: <Settings size={20} />, label: "Settings", path: "/Dashboard" },
                     ].map((item, idx) => (
                         <button
                             key={idx}
+                            onClick={() => window.location.href = item.path || '#'}
                             className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl font-bold text-sm transition-all group ${item.active
-                                    ? "bg-amber-50 text-amber-600"
-                                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                ? "bg-amber-50 text-amber-600"
+                                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                 }`}
                         >
                             <span className={item.active ? "text-amber-600" : "text-slate-400 group-hover:text-slate-600"}>
@@ -67,7 +81,7 @@ export default function DashboardPage() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col h-screen overflow-hidden">
+            <main className="flex-1 flex flex-col h-screen">
                 {/* Header */}
                 <header className="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4 flex-1 max-w-xl">
@@ -113,9 +127,9 @@ export default function DashboardPage() {
                         {/* Stats Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {[
-                                { label: "Active Scans", value: "24", trend: "+12%", icon: <Activity className="text-amber-600" /> },
-                                { label: "Alerts Flagged", value: "08", trend: "-5%", icon: <ShieldCheck className="text-red-600" /> },
-                                { label: "API Requests", value: "1.2k", trend: "+2.4%", icon: <Zap className="text-blue-600" /> },
+                                { label: "Safety Status", value: stats.system_status === 'active' ? "Locked" : "Checking", trend: "+100%", icon: <ShieldCheck className="text-emerald-600" /> },
+                                { label: "Interactions Indexed", value: stats.interaction_count.toLocaleString(), trend: "Ready", icon: <Activity className="text-amber-600" /> },
+                                { label: "Total Medications", value: stats.drug_count.toLocaleString(), trend: "Live", icon: <Zap className="text-blue-600" /> },
                             ].map((stat, idx) => (
                                 <motion.div
                                     key={idx}
@@ -133,18 +147,49 @@ export default function DashboardPage() {
                             ))}
                         </div>
 
-                        {/* Main Area */}
-                        <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm p-10 min-h-[400px] flex flex-col items-center justify-center text-center">
-                            <div className="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-500 mb-6">
-                                <Activity size={40} />
+                        {/* AI Interaction Checker */}
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
+                                        <ShieldCheck className="text-blue-400 w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">AI Safety Copilot</h2>
+                                        <p className="text-slate-500 text-sm font-medium">Real-time drug-drug interaction monitoring</p>
+                                    </div>
+                                </div>
+                                <div className="flex bg-slate-100 p-1 rounded-xl">
+                                    <button
+                                        onClick={() => setMode('patient')}
+                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${mode === 'patient' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        <User size={14} /> Patient Mode
+                                    </button>
+                                    <button
+                                        onClick={() => setMode('clinician')}
+                                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${mode === 'clinician' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-400 hover:text-slate-600'}`}
+                                    >
+                                        <Stethoscope size={14} /> Clinician Mode
+                                    </button>
+                                </div>
                             </div>
-                            <h3 className="text-2xl font-black text-slate-900 mb-2">Ready for Analysis</h3>
-                            <p className="text-slate-500 max-w-sm font-medium">
-                                Upload a prescription photo or start a voice scan to detect potential drug-drug or drug-food interactions.
-                            </p>
-                            <button className="mt-8 bg-slate-900 text-white px-10 py-4 rounded-[20px] font-bold hover:bg-amber-600 transition-all flex items-center gap-3 shadow-xl shadow-slate-900/10">
-                                Start New Scan <Zap size={18} />
-                            </button>
+
+                            <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm p-2">
+                                <DrugChecker mode={mode} />
+                            </div>
+                        </div>
+
+                        {/* Recent Alerts / History (Optional) */}
+                        <div className="bg-amber-50 rounded-3xl p-6 border border-amber-200/50 flex items-start gap-4">
+                            <AlertCircle className="text-amber-600 shrink-0" size={24} />
+                            <div>
+                                <h4 className="font-bold text-amber-900">Safety Tip</h4>
+                                <p className="text-sm text-amber-800/80 leading-relaxed font-medium">
+                                    This tool uses the DDInter 2.0 dataset and OpenAI GPT-4o for risk assessment.
+                                    Always consult your prescribing physician before making changes to your medication regimen.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

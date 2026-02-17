@@ -14,6 +14,12 @@ export const API_CONFIG = {
             VERIFY_EMAIL: '/auth/verify/email',
             RESEND_VERIFICATION: '/auth/verify/resend',
         },
+        DDI: {
+            SEARCH: '/ddi/search',
+            CHECK: '/ddi/check',
+            EXPLAIN: '/ddi/explain',
+            STATS: '/ddi/stats',
+        },
         HEALTH: '/health',
     },
 

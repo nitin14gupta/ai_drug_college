@@ -119,6 +119,51 @@ class ApiService {
         return this.request<{ status: string }>(API_CONFIG.ENDPOINTS.HEALTH);
     }
 
+    // DDI endpoints
+    searchDrugs(query: string) {
+        return this.request<any[]>(`${API_CONFIG.ENDPOINTS.DDI.SEARCH}?q=${encodeURIComponent(query)}`);
+    }
+
+    checkInteractions(drugIds: string[], userId?: string, patientContext?: any) {
+        return this.request<any>(API_CONFIG.ENDPOINTS.DDI.CHECK, {
+            method: 'POST',
+            body: JSON.stringify({
+                drug_ids: drugIds,
+                user_id: userId,
+                patient_context: patientContext
+            }),
+        });
+    }
+
+    explainInteraction(drugA: string, drugB: string, severity: string, mode: string = 'patient') {
+        return this.request<{ explanation: string }>(API_CONFIG.ENDPOINTS.DDI.EXPLAIN, {
+            method: 'POST',
+            body: JSON.stringify({ drug_a: drugA, drug_b: drugB, severity, mode }),
+        });
+    }
+
+    getDDIStats() {
+        return this.request<{ drug_count: number; interaction_count: number; system_status: string }>(API_CONFIG.ENDPOINTS.DDI.STATS);
+    }
+
+    // User Medications
+    getUserMedications(userId: string) {
+        return this.request<any[]>(`/user/medications/${userId}`);
+    }
+
+    addUserMedication(data: { user_id: string; drug_id: string; drug_name: string; dosage?: string; frequency?: string }) {
+        return this.request<any>('/user/medications', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    deleteUserMedication(medId: number) {
+        return this.request<any>(`/user/medications/${medId}`, {
+            method: 'DELETE',
+        });
+    }
+
 }
 
 export const apiService = new ApiService();

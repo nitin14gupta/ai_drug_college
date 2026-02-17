@@ -29,14 +29,6 @@ class R2Client:
                         aws_secret_access_key=self.r2_secret_key
                         # verify=False
         )
-        # self.client = boto3.client(
-        #     "s3",
-        #     endpoint_url=self.r2_endpoint,
-        #     aws_access_key_id=self.r2_access_key,
-        #     aws_secret_access_key=self.r2_secret_key,
-        #     verify=False,
-        #     config=boto3.session.Config(signature_version='s3v4')
-        # )
     
     def upload_file(self, file_bytes: BytesIO, file_name: str, folder: str = "storyboard") -> Dict[str, Any]:
         """
